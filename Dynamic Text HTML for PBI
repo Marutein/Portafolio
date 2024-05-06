@@ -1,0 +1,63 @@
+Revenue Summary Data Changes = 
+VAR Min_QueryDate = CALCULATE(MIN('Sales Validation'[Date]))
+VAR Min_QueryHour = CALCULATE(MIN('Sales Validation'[Hour]), 'Sales Validation'[Date] = Min_QueryDate)
+
+VAR TodayDate = CALCULATE(MAX('Sales Validation'[Date]))
+VAR Last_Query_Hour = CALCULATE(MAX('Sales Validation'[Hour]), 'Sales Validation'[Date] = TodayDate)
+
+
+VAR First_Historical_Data_Point = CALCULATE(
+    MIN('Sales Validation'[Total Revenue]),
+    'Sales Validation'[Date] = Min_QueryDate,
+    'Sales Validation'[Hour] = Min_QueryHour
+)
+
+VAR Today_Historical_Data_Point = CALCULATE(
+    MIN('Sales Validation'[Total Revenue]),
+    'Sales Validation'[Date] = TodayDate,
+    'Sales Validation'[Hour] = Last_Query_Hour
+)
+VAR Count_of_Diff_Rows_from_Initial_Data_Point = CALCULATE(COUNTROWS('Sales Validation'), 
+First_Historical_Data_Point <> 'Sales Validation'[Total Revenue])
+
+VAR DistinctRevenues = 
+CALCULATE(DISTINCTCOUNT('Sales Validation'[Total Revenue]),
+First_Historical_Data_Point <> 'Sales Validation'[Total Revenue])
+
+VAR Distinct_Revenues_Fixed = 
+IF(ISBLANK(DistinctRevenues),0,DistinctRevenues)
+
+VAR Year_Selection = 
+SWITCH(TRUE(),
+SELECTEDVALUE('Sales Validation'[Year]) = "2021", 2021,
+SELECTEDVALUE('Sales Validation'[Year]) = "2022", 2022,
+SELECTEDVALUE('Sales Validation'[Year]) = "2023", 2023)
+
+VAR Grammar_Selection_For_DistinctRevenues = 
+IF(DistinctRevenues >= 0 && DistinctRevenues < 2, " is "," were ")
+
+VAR Date_Data_Changed = 
+CALCULATE(MIN('Sales Validation'[Date]), 
+First_Historical_Data_Point <> 'Sales Validation'[Total Revenue])
+
+VAR Hour_Data_Changed = 
+CALCULATE(MIN('Sales Validation'[Hour]), 'Sales Validation'[Date] = Date_Data_Changed,
+First_Historical_Data_Point <> 'Sales Validation'[Total Revenue])
+
+VAR FirstDP_vs_LastDP = CALCULATE(Today_Historical_Data_Point - First_Historical_Data_Point)
+
+VAR Text_1 = " The first data changed was on " &Date_Data_Changed &" at " &Hour_Data_Changed &". The difference between the initial Data Point and the last one is: " &FirstDP_vs_LastDP
+
+VAR Text_2 = "<div style='font-size:15pt; font-weight:bold; color:grey;'>Summary</div><br>" &
+"The historical data reveals that the initial data point for revenue is represented as: " & FORMAT(First_Historical_Data_Point, "#,##") & ". This value represents the total actual revenue at the beginning of the evaluation period. It is important to note that this particular data point is expected to undergo changes throughout the entire assessed year, which is designated as " & Year_Selection & ". Currently, the number of times that the data point changed" & Grammar_Selection_For_DistinctRevenues & " " & Distinct_Revenues_Fixed & ". " &
+IF(Distinct_Revenues_Fixed > 0, Text_1) &"<br>" &"<br>"
+&"Number of Data Changes: " & Distinct_Revenues_Fixed & "<br/>"
+&"First Change: " & Date_Data_Changed & "<br/>"
+&"Total Difference: " & FirstDP_vs_LastDP
+& "</div>"
+
+
+
+
+RETURN 
+Text_2
