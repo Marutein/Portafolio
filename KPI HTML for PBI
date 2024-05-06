@@ -1,0 +1,61 @@
+Gross Profit Highlights Welcome Page = 
+VAR Min_QueryDate = CALCULATE(MIN('Sales Validation'[Date]))
+VAR Min_QueryHour = CALCULATE(MIN('Sales Validation'[Hour]), 'Sales Validation'[Date] = Min_QueryDate)
+
+VAR TodayDate = CALCULATE(MAX('Sales Validation'[Date]))
+VAR Last_Query_Hour = CALCULATE(MAX('Sales Validation'[Hour]), 'Sales Validation'[Date] = TodayDate)
+
+
+VAR First_Historical_Data_Point = CALCULATE(
+    MIN('Sales Validation'[Total Gross Profit]),
+    'Sales Validation'[Date] = Min_QueryDate,
+    'Sales Validation'[Hour] = Min_QueryHour
+)
+
+VAR Today_Historical_Data_Point = CALCULATE(
+    MIN('Sales Validation'[Total Gross Profit]),
+    'Sales Validation'[Date] = TodayDate,
+    'Sales Validation'[Hour] = Last_Query_Hour
+)
+VAR Count_of_Diff_Rows_from_Initial_Data_Point = CALCULATE(COUNTROWS('Sales Validation'), 
+First_Historical_Data_Point <> 'Sales Validation'[Total Gross Profit])
+
+VAR DistinctGP = 
+CALCULATE(DISTINCTCOUNT('Sales Validation'[Total Gross Profit]),
+First_Historical_Data_Point <> 'Sales Validation'[Total Gross Profit])
+
+VAR Distinct_GP_Fixed = 
+IF(ISBLANK(DistinctGP),0,DistinctGP)
+
+VAR Year_Selection = 
+SWITCH(TRUE(),
+SELECTEDVALUE('Sales Validation'[Year]) = "2021", 2021,
+SELECTEDVALUE('Sales Validation'[Year]) = "2022", 2022,
+SELECTEDVALUE('Sales Validation'[Year]) = "2023", 2023)
+
+VAR Grammar_Selection_For_DistinctGP = 
+IF(DistinctGP >= 0 && DistinctGP < 2, " is "," were ")
+
+VAR Date_Data_Changed = 
+CALCULATE(MIN('Sales Validation'[Date]), 
+First_Historical_Data_Point <> 'Sales Validation'[Total Gross Profit])
+
+VAR Hour_Data_Changed = 
+CALCULATE(MIN('Sales Validation'[Hour]), 'Sales Validation'[Date] = Date_Data_Changed,
+First_Historical_Data_Point <> 'Sales Validation'[Total Gross Profit])
+
+VAR FirstDP_vs_LastDP = CALCULATE(Today_Historical_Data_Point - First_Historical_Data_Point)
+
+VAR Text_1 = "Number of Data Changes: " &Distinct_GP_Fixed &"<br/>"
+            &"First Change: " &Date_Data_Changed &"<br/>"
+            &"Total Difference: " &FirstDP_vs_LastDP
+
+VAR Text_2 = "<div style='position:relative; text-align:left; background-color:rgb(99, 230, 226); font-family:Calibri; font-size:12pt; color:white; padding:10px 10px 5px 10px; border-radius: 15px;'>"
+& "Gross Profit Mistmaches<br>"
+& "<div style='text-align:left; text-align:right; font-size:16pt;'>"
+& Distinct_GP_Fixed & "<br/>"
+& "</div>"
+
+
+RETURN 
+Text_2
