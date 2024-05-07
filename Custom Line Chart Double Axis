@@ -1,0 +1,174 @@
+Line Double Y Axis Char Test 2 = 
+VAR ThisYear = YEAR(TODAY())
+VAR YearAgo = ThisYear - 1
+VAR TwoYearsAgo = ThisYear - 2
+VAR ThisYearVol = CALCULATE([Actual Vol],'Date'[Year - Int] = ThisYear)
+VAR YearAgoVol = CALCULATE([Actual Vol],'Date'[Year - Int] = YearAgo)
+VAR TwoYearsAgoVol = CALCULATE([Actual Vol],'Date'[Year - Int] = TwoYearsAgo)
+
+VAR ThisMonth = MONTH(TODAY())
+VAR LastMonth = ThisMonth -1
+VAR TwoMonthsAgo = ThisMonth -2
+VAR ThreeMonthsAgo = ThisMonth -3
+
+VAR ThisMonthVol = CALCULATE([Actual Vol],'Date'[Year - Int] = ThisYear, 'Date'[Month - Int] = ThisMonth)
+VAR LastMonthVol = CALCULATE([Actual Vol],'Date'[Year - Int] = ThisYear, 'Date'[Month - Int] = LastMonth)
+VAR TwoMonthsAgoVol = CALCULATE([Actual Vol],'Date'[Year - Int] = ThisYear, 'Date'[Month - Int] = ThisMonth-2)
+VAR ThreeMonthsAgoVol = CALCULATE([Actual Vol],'Date'[Year - Int] = ThisYear, 'Date'[Month - Int] = ThisMonth-3)
+
+VAR LastYear_ThisMonthVol = CALCULATE([Actual Vol],'Date'[Year - Int] = ThisYear-1, 'Date'[Month - Int] = ThisMonth)
+VAR LastYear_LastMonthVol = CALCULATE([Actual Vol],'Date'[Year - Int] = ThisYear-1, 'Date'[Month - Int] = LastMonth)
+VAR LastYear_TwoMonthsAgoVol = CALCULATE([Actual Vol],'Date'[Year - Int] = ThisYear-1, 'Date'[Month - Int] = TwoMonthsAgo)
+VAR LastYear_ThreeMonthsAgoVol = CALCULATE([Actual Vol],'Date'[Year - Int] = ThisYear-1, 'Date'[Month - Int] = ThreeMonthsAgo)
+
+VAR Chart =
+"<html>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js'></script>
+<body>
+    <canvas id='myChart' style='width:100%;max-width:700px'></canvas>
+
+    <script>
+        var XValues = [" & ThisMonth & ", " & LastMonth & ", " & TwoMonthsAgo & ", " & ThreeMonthsAgo & "];
+        var ThisYearYValues = [" & ThisMonthVol & ", " & LastMonthVol & ", " & TwoMonthsAgoVol & ", " & ThreeMonthsAgoVol & "];
+        var LastYearYValues = [" & LastYear_ThisMonthVol & ", " & LastYear_LastMonthVol & ", " & LastYear_TwoMonthsAgoVol & ", " & LastYear_ThreeMonthsAgoVol & "];
+
+        var xyValuesThisYear = XValues.map(function(value, index) {
+            return { x: parseFloat(value), y: parseFloat(ThisYearYValues[index]) };
+        });
+
+        var xyValuesLastYear = XValues.map(function(value, index) {
+            return { x: parseFloat(value), y: parseFloat(LastYearYValues[index]) };
+        });
+
+        new Chart('myChart', {
+            type: 'line',
+            data: {
+                labels: XValues,
+                datasets: [{
+                    label: 'This Year',
+                    fill: false,
+                    lineTension: 0,
+                    backgroundColor: 'rgba(75, 192, 192, 1.0)',
+                    borderColor: 'rgba(75, 192, 192, 0.1)',
+                    pointRadius: 5,
+                    pointHoverRadius: 10,
+                    pointHoverBackgroundColor: 'rgba(75, 192, 192, 1.0)',
+                    pointHoverBorderColor: 'rgba(75, 192, 192, 1.0)',
+                    pointHitRadius: 10,
+                    data: xyValuesThisYear,
+                    yAxisID: 'y-axis-1'
+                }, {
+                    label: 'Last Year',
+                    fill: false,
+                    lineTension: 0,
+                    backgroundColor: 'rgba(255, 99, 132, 1.0)',
+                    borderColor: 'rgba(255, 99, 132, 0.1)',
+                    pointRadius: 5,
+                    pointHoverRadius: 10,
+                    pointHoverBackgroundColor: 'rgba(255, 99, 132, 1.0)',
+                    pointHoverBorderColor: 'rgba(255, 99, 132, 1.0)',
+                    pointHitRadius: 10,
+                    data: xyValuesLastYear,
+                    yAxisID: 'y-axis-2'
+                }]
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: 'Line Plot of Actual Vol',
+                    fontColor: 'rgba(50,50,50,1.0)',
+                    fontSize: 16
+                },
+                legend: { display: true, labels: { fontColor: 'rgba(50,50,50,1.0)' } },
+                scales: {
+                    xAxes: [{
+                        type: 'linear',
+                        position: 'bottom',
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Month',
+                            fontColor: 'rgba(50,50,50,1.0)',
+                            fontSize: 14
+                        },
+                        ticks: {
+                            stepSize: 1,
+                            min: 1,
+                            max: 12,
+                            fontColor: 'rgba(50,50,50,1.0)',
+                            fontSize: 12
+                        }
+                    }],
+                    yAxes: [{
+                        id: 'y-axis-1',
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Actual Vol (This Year)',
+                            fontColor: 'rgba(50,50,50,1.0)',
+                            fontSize: 14
+                        },
+                        ticks: {
+                            min: 100000,
+                            max: 16000000,
+                            fontColor: 'rgba(50,50,50,1.0)',
+                            fontSize: 12,
+                            callback: function(value, index, values) {
+                                return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                            }
+                        }
+                    }, {
+                        id: 'y-axis-2',
+                        position: 'right',
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Actual Vol (Last Year)',
+                            fontColor: 'rgba(50,50,50,1.0)',
+                            fontSize: 14
+                        },
+                        ticks: {
+                            min: 100000,
+                            max: 16000000,
+                            fontColor: 'rgba(50,50,50,1.0)',
+                            fontSize: 12,
+                            callback: function(value, index, values) {
+                                return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                            }
+                        }
+                    }]
+                },
+                tooltips: {
+                    mode: 'index',
+                    intersect: false,
+                    titleFontSize: 14,
+                    bodyFontSize: 12,
+                    callbacks: {
+                        label: function(tooltipItem, data) {
+                            var label = data.datasets[tooltipItem.datasetIndex].label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += tooltipItem.yLabel.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                            return label;
+                        }
+                    }
+                },
+                elements: {
+                    line: {
+                        tension: 0,
+                        borderWidth: 3
+                    },
+                    point: {
+                        radius: 0,
+                        hoverRadius: 0
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>"
+
+RETURN
+Chart
+
+
+                           
