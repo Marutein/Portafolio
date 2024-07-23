@@ -1,0 +1,23 @@
+Display Selected Month & Range = 
+// Month Display Calculations
+VAR SelectedMonths = VALUES('Date'[Month])
+VAR MonthCount = COUNTROWS(SelectedMonths)
+VAR TextColor = "#171C8F"
+VAR FontFamily = "Segoe UI"
+VAR FontSize = "10pt"
+
+VAR MonthSelection = 
+SWITCH(
+    TRUE(),
+    MonthCount = 1, "<span style='color:" & TextColor & "; font-family:" & FontFamily & "; font-size:" & FontSize & ";'><b>Selected Month: </b>" & CALCULATE(SELECTEDVALUE('Date'[Month])) & "</span>",
+    MonthCount = 12, "<span style='color:" & TextColor & "; font-family:" & FontFamily & "; font-size:" & FontSize & ";'><b>All Months Selected</b></span>",
+    "<span style='color:" & TextColor & "; font-family:" & FontFamily & "; font-size:" & FontSize & ";'><b>Selected Months: </b>" & CONCATENATEX(SelectedMonths, 'Date'[Month], ", ") & "</span>"
+)
+
+// Date Range Calculations
+VAR MinDate = CALCULATE(MIN('Date'[Date]), 'Date'[Year] = YEAR(TODAY()) -1, 'Date'[Month] IN SelectedMonths)
+VAR MaxDate = CALCULATE(MAX('Date'[Date]), 'Date'[Month] IN SelectedMonths)
+VAR DateRange = "<span style='color:" & TextColor & "; font-family:" & FontFamily & "; font-size:" & FontSize & ";'><b>Date Range: </b>" & FORMAT(MinDate, "MM/dd/yyyy") & " - " & FORMAT(MaxDate, "MM/dd/yyyy")
+
+RETURN
+    MonthSelection & "<br>" & DateRange
