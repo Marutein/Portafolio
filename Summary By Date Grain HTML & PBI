@@ -1,0 +1,51 @@
+Summary Total Census by Payer Type = 
+VAR CensusPrivate = CALCULATE([Census],Payer[Payer Type] = "Private")
+VAR CensusPrivatePercentage = DIVIDE(CensusPrivate,[Census]) 
+
+VAR CensusManageCare = CALCULATE([Census],Payer[Payer Type] = "Managed Care")
+VAR CensusManageCarePercentage = DIVIDE(CensusManageCare,[Census])
+
+VAR CensusMedicaid = CALCULATE([Census],Payer[Payer Type] = "Medicaid")
+VAR CensusMedicaidPercentage = DIVIDE(CensusMedicaid,[Census])
+
+VAR CensusMedicare = CALCULATE([Census],Payer[Payer Type] = "Medicare A")
+VAR CensusMedicarePercentage = DIVIDE(CensusMedicare,[Census])
+
+VAR CensusOther = CALCULATE([Census],Payer[Payer Type] = "Other")
+VAR CensusOtherPercentage = DIVIDE(CensusOther,[Census])
+
+VAR DateSelected = SELECTEDVALUE('Date'[Date])
+VAR MonthSelected = SELECTEDVALUE('Date'[Month])
+VAR YearSelected = SELECTEDVALUE('Date'[Year])
+
+VAR DateHierarchySelection = 
+SWITCH(TRUE(),
+    NOT(ISBLANK(DateSelected)), DateSelected,
+    NOT(ISBLANK(MonthSelected)), MonthSelected,
+    NOT(ISBLANK(YearSelected)), YearSelected,
+    BLANK()
+)
+
+
+VAR Summary = 
+"<span style='font-family:Segoe UI; font-size:14.5px;'>
+<b>Summary</b><br>" &
+"In " & DateHierarchySelection & ":" & "<br>" &
+"<span style='color:#118DFF'><b>Managed Care: </b></span>" & "<br>" &
+"Census: " & FORMAT(CensusManageCare, "###,###") & "<br>" &
+"Percentage: " & FORMAT(CensusManageCarePercentage, "0.00%") & "<br>"& "<br>" &
+"<span style='color:#12239E'><b>Medicaid: </b></span>" & "<br>" &
+"Census: " & FORMAT(CensusMedicaid, "###,###") & "<br>" &
+"Percentage: " & FORMAT(CensusMedicaidPercentage, "0.00%") & "<br>"& "<br>" &
+"<span style='color:#6F6FD9'><b>Medicare: </b></span>" & "<br>" &
+"Census: " & FORMAT(CensusMedicare, "###,###") & "<br>" &
+"Percentage: " & FORMAT(CensusMedicarePercentage, "0.00%") & "<br>"& "<br>" &
+"<span style='color:#6B007B'><b>Other: </b></span>" & "<br>" &
+"Census: " & FORMAT(CensusOther, "###,###") & "<br>" &
+"Percentage: " & FORMAT(CensusOtherPercentage, "0.00%") & "<br>"& "<br>" &
+"<span style='color:#E044A7'><b>Private: </b></span>" & "<br>" &
+"Census: " & FORMAT(CensusPrivate, "###,###") & "<br>" &
+"Percentage: " & FORMAT(CensusPrivatePercentage, "0.00%") & "<br> 
+</span>"
+
+RETURN Summary
